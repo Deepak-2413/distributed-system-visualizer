@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Distributed System Visualizer</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header>
+<h1>Distributed System Visualizer</h1>
+<p>Replication • Quorum • Failover • Recovery • Observability</p>
+</header>
+
+<section id="controls">
+<input id="keyInput" placeholder="Key">
+<input id="valueInput" placeholder="Value">
+
+<button onclick="putData()">PUT</button>
+<button onclick="getData()">GET</button>
+<button onclick="resetCluster()">RESET</button>
+</section>
+
+<section id="fail-controls">
+
+<button onclick="failNode(0)">Fail Node 0</button>
+<button onclick="failNode(1)">Fail Node 1</button>
+<button onclick="failNode(2)">Fail Node 2</button>
+
+<button onclick="recoverNode(0)">Recover Node 0</button>
+<button onclick="recoverNode(1)">Recover Node 1</button>
+<button onclick="recoverNode(2)">Recover Node 2</button>
+
+</section>
+
+<section id="nodes">
+
+<div class="node" id="node0">
+<h3>Node 0</h3>
+<p class="status">Status: Active</p>
+<div class="data"></div>
+</div>
+
+<div class="node" id="node1">
+<h3>Node 1</h3>
+<p class="status">Status: Active</p>
+<div class="data"></div>
+</div>
+
+<div class="node" id="node2">
+<h3>Node 2</h3>
+<p class="status">Status: Active</p>
+<div class="data"></div>
+</div>
+
+</section>
+
+<section id="health">
+
+<h3>Cluster Health</h3>
+
+<ul>
+<li>Active Nodes: <span id="activeCount"></span></li>
+<li>Failed Nodes: <span id="failedCount"></span></li>
+<li>Quorum Required: <span id="quorumCount"></span></li>
+<li>Total Keys Stored: <span id="keyCount"></span></li>
+</ul>
+
+</section>
+
+<section id="log">
+
+<h3>Activity Log</h3>
+<div id="logBody"></div>
+
+</section>
+
+
+
+<script src="script.js"></script>
+
+</body>
+</html>

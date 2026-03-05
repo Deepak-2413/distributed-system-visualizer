@@ -1,0 +1,159 @@
+const TOTAL_NODES = 3
+const QUORUM = 2
+
+let nodes = [
+{active:true,data:{}},
+{active:true,data:{}},
+{active:true,data:{}}
+]
+
+function log(msg){
+let logDiv=document.getElementById("logBody")
+let time=new Date().toLocaleTimeString()
+logDiv.innerHTML=`[${time}] ${msg}<br>`+logDiv.innerHTML
+}
+
+function updateUI(){
+
+nodes.forEach((node,i)=>{
+
+let nodeDiv=document.getElementById("node"+i)
+let status=nodeDiv.querySelector(".status")
+let dataDiv=nodeDiv.querySelector(".data")
+
+status.textContent=node.active?"Status: Active":"Status: FAILED"
+
+nodeDiv.classList.toggle("failed",!node.active)
+
+dataDiv.innerHTML=""
+
+for(let k in node.data){
+dataDiv.innerHTML+=`<p>${k} : ${node.data[k].value} (v${node.data[k].version})</p>`
+}
+
+})
+
+updateHealth()
+
+}
+
+function updateHealth(){
+
+let active=nodes.filter(n=>n.active).length
+let failed=TOTAL_NODES-active
+
+let keys=new Set()
+
+nodes.forEach(n=>{
+if(n.active){
+Object.keys(n.data).forEach(k=>keys.add(k))
+}
+})
+
+document.getElementById("activeCount").textContent=active
+document.getElementById("failedCount").textContent=failed
+document.getElementById("quorumCount").textContent=QUORUM
+document.getElementById("keyCount").textContent=keys.size
+
+}
+
+function putData(){
+
+let key=document.getElementById("keyInput").value
+let value=document.getElementById("valueInput").value
+
+if(!key||!value) return
+
+let alive=nodes.filter(n=>n.active)
+
+if(alive.length<QUORUM){
+log("PUT failed: quorum not met")
+return
+}
+
+let version=1
+
+alive.forEach(n=>{
+if(n.data[key]) version=Math.max(version,n.data[key].version+1)
+})
+
+alive.forEach(n=>{
+n.data[key]={value,version}
+})
+
+log(`PUT committed with quorum (${alive.length}/${TOTAL_NODES})`)
+updateUI()
+
+}
+
+function getData(){
+
+let key=document.getElementById("keyInput").value
+if(!key) return
+
+let responses=[]
+
+nodes.forEach(n=>{
+if(n.active&&n.data[key]) responses.push(n.data[key])
+})
+
+if(responses.length<QUORUM){
+log("GET failed: quorum not satisfied")
+return
+}
+
+let latest=responses.reduce((a,b)=>b.version>a.version?b:a)
+
+log(`GET success → value="${latest.value}"`)
+}
+
+function failNode(id){
+
+nodes[id].active=false
+log(`Node ${id} FAILED`)
+updateUI()
+
+}
+
+function recoverNode(id){
+
+nodes[id].active=true
+log(`Node ${id} RECOVERED`)
+
+let recovered=nodes[id]
+
+nodes.forEach(n=>{
+
+if(n.active&&n!==recovered){
+
+for(let k in n.data){
+
+if(!recovered.data[k]||n.data[k].version>recovered.data[k].version){
+recovered.data[k]={...n.data[k]}
+}
+
+}
+
+}
+
+})
+
+log(`Node ${id} rebalanced with latest data`)
+updateUI()
+
+}
+
+function resetCluster(){
+
+nodes=[
+{active:true,data:{}},
+{active:true,data:{}},
+{active:true,data:{}}
+]
+
+log("Cluster reset")
+updateUI()
+
+}
+
+updateUI()
